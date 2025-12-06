@@ -5,6 +5,11 @@ import os
 # Configure to serve static files from client folder
 app = Flask(__name__, static_folder='../client', static_url_path='', template_folder='../client')
 
+# Load artifacts on startup
+print("Loading saved artifacts...")
+util.load_saved_artifacts()
+print("Artifacts loaded successfully!")
+
 @app.route('/')
 def home():
     return render_template('app.html')
@@ -34,5 +39,4 @@ def predict_home_price():
 
 if __name__ == "__main__":
     print("Starting Python Flask Server For Home Price Prediction...")
-    util.load_saved_artifacts()
     app.run()
