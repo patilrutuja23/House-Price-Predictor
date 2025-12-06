@@ -2,14 +2,21 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/server.py",
-      "use": "@vercel/python"
+      "src": "wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "pythonVersion": "3.10"
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server/server.py"
+      "dest": "wsgi.py"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
 }
+

@@ -12,17 +12,21 @@ app = Flask(__name__,
             static_url_path='', 
             template_folder=os.path.join(BASE_DIR, '../client'))
 
-# Load artifacts on startup (with error handling)
-artifacts_loaded = False
-try:
-    print(f"Base directory: {BASE_DIR}")
-    print("Loading saved artifacts...")
-    util.load_saved_artifacts()
-    artifacts_loaded = True
-    print("✓ Artifacts loaded successfully!")
-except Exception as e:
-    print(f"✗ Error loading artifacts: {e}")
-    print("App will still run, but predictions may fail")
+# Global variable to track artifacts loading
+_artifacts_loaded = False
+
+def ensure_artifacts_loaded():
+    """Lazy load artifacts on first use"""
+    global _artifacts_loaded
+    if not _artifacts_loaded:
+        try:
+            print("Loading saved artifacts...")
+            util.load_saved_artifacts()
+            _artifacts_loaded = True
+            print("✓ Artifacts loaded successfully!")
+        except Exception as e:
+            print(f"✗ Error loading artifacts: {e}")
+            raise
 
 @app.route('/')
 def home():
@@ -36,12 +40,13 @@ def health():
     """Health check endpoint for monitoring"""
     return jsonify({
         'status': 'ok',
-        'artifacts_loaded': artifacts_loaded
+        'artifacts_loaded': _artifacts_loaded
     })
 
 @app.route('/api/get_location_names', methods=['GET'])
 def get_location_names():
     try:
+        ensure_artifacts_loaded()
         response = jsonify({
             'locations': util.get_location_names()
         })
@@ -54,6 +59,7 @@ def get_location_names():
 @app.route('/api/predict_home_price', methods=['GET', 'POST'])
 def predict_home_price():
     try:
+        ensure_artifacts_loaded()
         total_sqft = float(request.form['total_sqft'])
         location = request.form['location']
         bhk = int(request.form['bhk'])
@@ -79,7 +85,6 @@ def not_found(error):
 def server_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
-# Export app for serverless platforms (Vercel, etc.)
 if __name__ == "__main__":
     print("Starting Python Flask Server For Home Price Prediction...")
     app.run(debug=False, host='0.0.0.0', port=5000)
