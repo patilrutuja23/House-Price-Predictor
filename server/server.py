@@ -6,9 +6,12 @@ import os
 app = Flask(__name__, static_folder='../client', static_url_path='', template_folder='../client')
 
 # Load artifacts on startup
-print("Loading saved artifacts...")
-util.load_saved_artifacts()
-print("Artifacts loaded successfully!")
+try:
+    print("Loading saved artifacts...")
+    util.load_saved_artifacts()
+    print("Artifacts loaded successfully!")
+except Exception as e:
+    print(f"Warning: Could not load artifacts on startup: {e}")
 
 @app.route('/')
 def home():
@@ -37,6 +40,8 @@ def predict_home_price():
 
     return response
 
+# Export app for serverless platforms (Vercel, etc.)
+# This is required for deployment on Vercel
 if __name__ == "__main__":
     print("Starting Python Flask Server For Home Price Prediction...")
     app.run()
